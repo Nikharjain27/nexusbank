@@ -1,0 +1,14 @@
+nexusbank:
+  service:
+    name: auth-service
+    version: 1.0.0
+
+info:
+  application:
+    name: NEXUSBANK Auth Service
+    description: Authentication and authorization service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
