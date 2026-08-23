@@ -16,13 +16,41 @@
     </parent>
 
     <artifactId>customer-service</artifactId>
-    <packaging>jar</packaging>
 
     <name>NEXUSBANK Customer Service</name>
 
     <description>
-        Customer profile and customer lifecycle management service
+        Customer profile and lifecycle management service
         for the NEXUSBANK platform.
     </description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.nexusbank</groupId>
+            <artifactId>common-lib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
