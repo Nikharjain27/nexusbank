@@ -36,8 +36,3 @@ docker-data/
 
 # OS
 Thumbs.db
-
-# Environment files
-.env
-.env.local
-.env.*.local
