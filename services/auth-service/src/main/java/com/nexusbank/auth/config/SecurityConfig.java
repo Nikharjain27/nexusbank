@@ -1,9 +1,7 @@
 package com.nexusbank.auth.config;
 
 import com.nexusbank.auth.security.JwtAuthenticationFilter;
-
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,7 +15,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
@@ -27,6 +27,7 @@ public class SecurityConfig {
     ) throws Exception {
 
         return http
+
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .sessionManagement(session ->
@@ -36,13 +37,25 @@ public class SecurityConfig {
                 )
 
                 .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(
-                                (request, response, exception) ->
-                                        response.sendError(
-                                                HttpServletResponse.SC_UNAUTHORIZED,
-                                                "Authentication required"
-                                        )
-                        )
+                        exceptionHandling
+
+                                // 401 - Authentication required
+                                .authenticationEntryPoint(
+                                        (request, response, exception) ->
+                                                response.sendError(
+                                                        HttpServletResponse.SC_UNAUTHORIZED,
+                                                        "Authentication required"
+                                                )
+                                )
+
+                                // 403 - Authenticated but insufficient permissions
+                                .accessDeniedHandler(
+                                        (request, response, exception) ->
+                                                response.sendError(
+                                                        HttpServletResponse.SC_FORBIDDEN,
+                                                        "Access denied"
+                                                )
+                                )
                 )
 
                 .authorizeHttpRequests(authorize -> authorize
@@ -51,11 +64,19 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
+                                "/v3/api-docs/**",
+                                "/error"
+                        )
+                        .permitAll()
 
                         .requestMatchers("/api/auth/**")
                         .permitAll()
+
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/customer/**")
+                        .hasRole("CUSTOMER")
 
                         .anyRequest()
                         .authenticated()
