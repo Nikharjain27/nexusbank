@@ -142,4 +142,19 @@ public class RefreshTokenService {
             String refreshToken,
             long expiresIn) {
     }
+
+    public void revokeRefreshToken(String rawToken) {
+
+        if (rawToken == null || rawToken.isBlank()) {
+            throw new IllegalArgumentException("Refresh token is required");
+        }
+
+        String tokenHash = hashToken(rawToken);
+
+        RefreshToken refreshToken = refreshTokenRepository
+                .findByTokenHash(tokenHash)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+
+        refreshToken.revoke();
+    }
 }
