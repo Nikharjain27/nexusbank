@@ -29,8 +29,7 @@ public class RefreshTokenService {
     public RefreshTokenService(
             RefreshTokenRepository refreshTokenRepository,
             JwtProperties jwtProperties,
-            JwtService jwtService
-    ) {
+            JwtService jwtService) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtProperties = jwtProperties;
         this.jwtService = jwtService;
@@ -54,8 +53,7 @@ public class RefreshTokenService {
         RefreshToken refreshToken = new RefreshToken(
                 user,
                 tokenHash,
-                expiresAt
-        );
+                expiresAt);
 
         refreshTokenRepository.save(refreshToken);
 
@@ -72,9 +70,7 @@ public class RefreshTokenService {
 
         RefreshToken existingToken = refreshTokenRepository
                 .findByTokenHash(tokenHash)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Invalid refresh token")
-                );
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 
         if (existingToken.isRevoked()) {
             throw new IllegalArgumentException("Refresh token has been revoked");
@@ -103,8 +99,24 @@ public class RefreshTokenService {
         return new LoginTokenResult(
                 newAccessToken,
                 newRefreshToken,
-                jwtService.getAccessTokenExpiration().toSeconds()
-        );
+                jwtService.getAccessTokenExpiration().toSeconds());
+    }
+
+    public void logout(String rawToken) {
+
+        if (rawToken == null || rawToken.isBlank()) {
+            throw new IllegalArgumentException("Refresh token is required");
+        }
+
+        String tokenHash = hashToken(rawToken);
+
+        RefreshToken refreshToken = refreshTokenRepository
+                .findByTokenHash(tokenHash)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+
+        if (!refreshToken.isRevoked()) {
+            refreshToken.revoke();
+        }
     }
 
     private String hashToken(String token) {
@@ -113,8 +125,7 @@ public class RefreshTokenService {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
             byte[] hash = digest.digest(
-                    token.getBytes(StandardCharsets.UTF_8)
-            );
+                    token.getBytes(StandardCharsets.UTF_8));
 
             return Base64.getEncoder()
                     .encodeToString(hash);
@@ -122,15 +133,13 @@ public class RefreshTokenService {
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException(
                     "SHA-256 algorithm is not available",
-                    exception
-            );
+                    exception);
         }
     }
 
     public record LoginTokenResult(
             String accessToken,
             String refreshToken,
-            long expiresIn
-    ) {
+            long expiresIn) {
     }
 }
