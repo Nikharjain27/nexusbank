@@ -6,6 +6,8 @@ import com.nexusbank.auth.dto.auth.RefreshTokenRequest;
 import com.nexusbank.auth.dto.auth.RegisterRequest;
 import com.nexusbank.auth.dto.auth.RegisterResponse;
 import com.nexusbank.auth.service.AuthService;
+import com.nexusbank.auth.service.RefreshTokenService;
+
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(
+            AuthService authService,
+            RefreshTokenService refreshTokenService) {
         this.authService = authService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @PostMapping("/register")
@@ -45,7 +51,14 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(
             @Valid @RequestBody RefreshTokenRequest request) {
-        LoginResponse response = authService.refresh(request);
+
+        RefreshTokenService.LoginTokenResult result = refreshTokenService.refresh(request.refreshToken());
+
+        LoginResponse response = new LoginResponse(
+                result.accessToken(),
+                result.refreshToken(),
+                "Bearer",
+                result.expiresIn());
 
         return ResponseEntity.ok(response);
     }
