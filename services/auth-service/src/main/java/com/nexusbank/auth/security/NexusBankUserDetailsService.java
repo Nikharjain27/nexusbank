@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 public class NexusBankUserDetailsService implements UserDetailsService {
 
@@ -25,6 +27,18 @@ public class NexusBankUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found with email: " + email
+                ));
+
+        return new NexusBankUserDetails(user);
+    }
+
+    @Transactional(readOnly = true)
+    public NexusBankUserDetails loadUserByPublicId(UUID publicId)
+            throws UsernameNotFoundException {
+
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "User not found with public ID: " + publicId
                 ));
 
         return new NexusBankUserDetails(user);

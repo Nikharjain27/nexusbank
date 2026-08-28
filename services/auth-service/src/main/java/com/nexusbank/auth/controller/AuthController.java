@@ -1,5 +1,8 @@
 package com.nexusbank.auth.controller;
 
+import com.nexusbank.auth.dto.auth.LoginRequest;
+import com.nexusbank.auth.dto.auth.LoginResponse;
+import com.nexusbank.auth.dto.auth.RefreshTokenRequest;
 import com.nexusbank.auth.dto.auth.RegisterRequest;
 import com.nexusbank.auth.dto.auth.RegisterResponse;
 import com.nexusbank.auth.service.AuthService;
@@ -23,12 +26,27 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
+            @Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(
+            @Valid @RequestBody RefreshTokenRequest request) {
+        LoginResponse response = authService.refresh(request);
+
+        return ResponseEntity.ok(response);
     }
 }

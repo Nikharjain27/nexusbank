@@ -56,3 +56,4 @@ security:
   jwt:
     secret: change-this-to-a-long-random-secret-key-for-development-only-please-change-it
     access-token-expiration: 15m
+    refresh-token-expiration: 7d

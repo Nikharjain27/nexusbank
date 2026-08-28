@@ -4,6 +4,7 @@ import com.nexusbank.auth.security.NexusBankUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,17 +13,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class AuthenticationConfig {
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(
+    public AuthenticationProvider authenticationProvider(
             NexusBankUserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder
     ) {
-        DaoAuthenticationProvider authenticationProvider =
-                new DaoAuthenticationProvider();
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider(userDetailsService);
 
-        authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder);
+        provider.setPasswordEncoder(passwordEncoder);
 
-        return authenticationProvider;
+        return provider;
     }
 
     @Bean
