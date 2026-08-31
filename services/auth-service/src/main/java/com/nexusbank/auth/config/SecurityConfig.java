@@ -1,7 +1,12 @@
 package com.nexusbank.auth.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexusbank.auth.dto.common.ApiErrorResponse;
 import com.nexusbank.auth.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.time.OffsetDateTime;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,80 +18,89 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter
-    ) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
+        public SecurityConfig(
+                        JwtAuthenticationFilter jwtAuthenticationFilter) {
+                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(
+                        HttpSecurity http,
+                        ObjectMapper objectMapper) throws Exception {
 
-        return http
+                return http
 
-                .csrf(AbstractHttpConfigurer::disable)
+                                .csrf(AbstractHttpConfigurer::disable)
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
-                )
+                                .sessionManagement(session -> session.sessionCreationPolicy(
+                                                SessionCreationPolicy.STATELESS))
 
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling
+                                .exceptionHandling(exceptionHandling -> exceptionHandling
 
-                                // 401 - Authentication required
-                                .authenticationEntryPoint(
-                                        (request, response, exception) ->
-                                                response.sendError(
-                                                        HttpServletResponse.SC_UNAUTHORIZED,
-                                                        "Authentication required"
-                                                )
-                                )
+                                                .authenticationEntryPoint(
+                                                                (request, response, exception) -> {
 
-                                // 403 - Authenticated but insufficient permissions
-                                .accessDeniedHandler(
-                                        (request, response, exception) ->
-                                                response.sendError(
-                                                        HttpServletResponse.SC_FORBIDDEN,
-                                                        "Access denied"
-                                                )
-                                )
-                )
+                                                                        ApiErrorResponse error = new ApiErrorResponse(
+                                                                                        OffsetDateTime.now(),
+                                                                                        HttpServletResponse.SC_UNAUTHORIZED,
+                                                                                        "Unauthorized",
+                                                                                        "Authentication required",
+                                                                                        request.getRequestURI());
 
-                .authorizeHttpRequests(authorize -> authorize
+                                                                        response.setStatus(
+                                                                                        HttpServletResponse.SC_UNAUTHORIZED);
+                                                                        response.setContentType("application/json");
+                                                                        objectMapper.writeValue(
+                                                                                        response.getOutputStream(),
+                                                                                        error);
+                                                                })
 
-                        .requestMatchers(
-                                "/actuator/health",
-                                "/actuator/info",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/error"
-                        )
-                        .permitAll()
+                                                .accessDeniedHandler(
+                                                                (request, response, exception) -> {
 
-                        .requestMatchers("/api/auth/**")
-                        .permitAll()
+                                                                        ApiErrorResponse error = new ApiErrorResponse(
+                                                                                        OffsetDateTime.now(),
+                                                                                        HttpServletResponse.SC_FORBIDDEN,
+                                                                                        "Forbidden",
+                                                                                        "Access denied",
+                                                                                        request.getRequestURI());
 
-                        .requestMatchers("/api/admin/**")
-                        .hasRole("ADMIN")
+                                                                        response.setStatus(
+                                                                                        HttpServletResponse.SC_FORBIDDEN);
+                                                                        response.setContentType("application/json");
+                                                                        objectMapper.writeValue(
+                                                                                        response.getOutputStream(),
+                                                                                        error);
+                                                                }))
 
-                        .requestMatchers("/api/customer/**")
-                        .hasRole("CUSTOMER")
+                                .authorizeHttpRequests(authorize -> authorize
 
-                        .anyRequest()
-                        .authenticated()
-                )
+                                                .requestMatchers(
+                                                                "/actuator/health",
+                                                                "/actuator/info",
+                                                                "/swagger-ui/**",
+                                                                "/v3/api-docs/**",
+                                                                "/error")
+                                                .permitAll()
 
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                )
+                                                .requestMatchers("/api/auth/**")
+                                                .permitAll()
 
-                .build();
-    }
+                                                .requestMatchers("/api/admin/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers("/api/customer/**")
+                                                .hasRole("CUSTOMER")
+
+                                                .anyRequest()
+                                                .authenticated())
+
+                                .addFilterBefore(
+                                                jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
+
+                                .build();
+        }
 }

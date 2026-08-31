@@ -131,4 +131,9 @@ public class AuthServiceImpl implements AuthService {
                                 "Bearer",
                                 result.expiresIn());
         }
+
+        @Override
+        public void logout(RefreshTokenRequest request) {
+                refreshTokenService.logout(request.refreshToken());
+        }
 }

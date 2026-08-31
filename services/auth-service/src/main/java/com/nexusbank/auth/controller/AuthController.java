@@ -21,13 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
-    private final RefreshTokenService refreshTokenService;
 
-    public AuthController(
-            AuthService authService,
-            RefreshTokenService refreshTokenService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.refreshTokenService = refreshTokenService;
     }
 
     @PostMapping("/register")
@@ -52,13 +48,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> refresh(
             @Valid @RequestBody RefreshTokenRequest request) {
 
-        RefreshTokenService.LoginTokenResult result = refreshTokenService.refresh(request.refreshToken());
-
-        LoginResponse response = new LoginResponse(
-                result.accessToken(),
-                result.refreshToken(),
-                "Bearer",
-                result.expiresIn());
+        LoginResponse response = authService.refresh(request);
 
         return ResponseEntity.ok(response);
     }
@@ -66,7 +56,8 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @Valid @RequestBody RefreshTokenRequest request) {
-        refreshTokenService.logout(request.refreshToken());
+
+        authService.logout(request);
 
         return ResponseEntity.noContent().build();
     }

@@ -54,6 +54,6 @@ management:
 
 security:
   jwt:
-    secret: change-this-to-a-long-random-secret-key-for-development-only-please-change-it
+    secret: ${JWT_SECRET}
     access-token-expiration: 15m
     refresh-token-expiration: 7d
